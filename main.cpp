@@ -6,35 +6,33 @@
 
 // test function 
 
-int main() {
-    curl_global_init(CURL_GLOBAL_DEFAULT);
-    std::cout << curl_version() << "\n";
+std::string get_request(std::string url)
+{
+	CURL *curl = curl_easy_init();
+	std::string result {};
+	if (curl)
+	{
+		curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+		curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, +[](void *contents, size_t size, size_t nmemb, std::string *response)
+				{
+				((std::string *) response)->append((char *) contents, size *nmemb);
+				return size * nmemb;
+				});
+		curl_easy_setopt(curl, CURLOPT_WRITEDATA, &result);
+		curl_easy_perform(curl);
+	}
+	return result;
+}
 
-    std::string url  = "https://example.com";
-    std::string html = "<html><body><a href=\"/a\">A</a><a href=\"/b\">B</a></body></html>";
+int main() 
+{
+	curl_global_init(CURL_GLOBAL_ALL);
+	std::string html_document = get_request("https://www.scrapingcourse.com/ecommerce/");
+	std::cout<<"test"<<std::endl;
+	std::cout<<html_document;
+	std::cout<<"test"<<std::endl;
 
-    htmlDocPtr doc = htmlReadMemory(html.c_str(), (int)html.size(), url.c_str(), nullptr,
-                                    HTML_PARSE_NOERROR | HTML_PARSE_NOWARNING);
-    if (!doc) {
-        std::cerr << "parse failed\n";
-        curl_global_cleanup();
-        return 1;
-    }
 
-    xmlXPathContextPtr ctx = xmlXPathNewContext(doc);
-    xmlXPathObjectPtr res = xmlXPathEvalExpression((const xmlChar*)"//a/@href", ctx);
-
-    if (res && res->nodesetval) {
-        for (int i = 0; i < res->nodesetval->nodeNr; ++i) {
-            xmlChar* href = xmlNodeGetContent(res->nodesetval->nodeTab[i]);
-            std::cout << "link: " << (const char*)href << "\n";
-            xmlFree(href);
-        }
-    }
-    std::cout<<"check done"<<std::endl;
-
-    xmlXPathFreeObject(res);
-    xmlXPathFreeContext(ctx);
-    xmlFreeDoc(doc);
-    curl_global_cleanup();
+	curl_global_cleanup();
+	return 0;
 }
