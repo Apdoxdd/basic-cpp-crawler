@@ -31,6 +31,7 @@ int main() {
             xmlFree(href);
         }
     }
+    std::cout<<"check done"<<std::endl;
 
     xmlXPathFreeObject(res);
     xmlXPathFreeContext(ctx);
