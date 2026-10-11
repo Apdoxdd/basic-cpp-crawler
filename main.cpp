@@ -8,6 +8,8 @@
 
 int main() 
 {
+	curl_global_init();
 
+	curl_global_cleanup();
 	return 0;
 }
