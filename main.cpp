@@ -4,7 +4,8 @@
 #include <libxml/xpath.h>
 #include <iostream>
 #include <string>
-#include <vector>
+#include <set>
+#include <fstream>
 
 
 
@@ -42,6 +43,7 @@ int main()
 	std::cout<<vers->version<<std::endl;
 	std::cout<<response<<std::endl;*/
 
+	 std::fstream data_base{"../data_base.txt", std::ios::out | std::ios::app | std::ios::in};
 	 //start-parse logic
 	 htmlDocPtr doc = htmlReadMemory(response.c_str(), response.length(), base_url.c_str(), nullptr, HTML_PARSE_NOERROR);
 	 if (!doc)
@@ -52,7 +54,7 @@ int main()
 	 xmlXPathContextPtr context = xmlXPathNewContext(doc);
 	 xmlXPathObjectPtr result = xmlXPathEvalExpression((const xmlChar *)"//a/@href", context);
 	 
-	 std::vector<std::string> links;
+	 std::set<std::string> links;
 	 if (result && result->nodesetval)
 	 {
 	 	 for (auto i {0uz}; i < result->nodesetval->nodeNr; ++i)
@@ -60,16 +62,24 @@ int main()
 	 	 	 xmlChar *href = xmlNodeGetContent(result->nodesetval->nodeTab[i]);
 	 	 	 if (href)
 	 	 	 {
-	 	 	 	 links.push_back((const char*)href);
+	 	 	 	 links.insert((const char*)href);
 	 	 	 	 xmlFree(href);
 	 	 	 }
 	 	 }
 	 }
 	 for (auto link : links)
+	 {
 	 	 std::cout<<link<<std::endl;
+	 	 data_base<<link<<"\n";
+	 }
+
 
 
 	 //end-parse logic
+
+	 
+
+
 
 	curl_global_cleanup();
 	return 0;
