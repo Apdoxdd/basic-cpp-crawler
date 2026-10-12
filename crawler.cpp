@@ -37,15 +37,22 @@ void crawler::set_request(std::string& url)
 }
 std::set<std::string> crawler::extract_links(const std::string& base_url)
 {
-	htmlDocPtr doc = htmlReadMemory(response.c_str(), response.length(), base_url.c_str(), NULL, HTML_PARSE_NOERROR);
-	std::set<std::string> links;
+	htmlDocPtr doc = htmlReadMemory(response.c_str(), response.length(), base_url.c_str(), NULL, HTML_PARSE_NOERROR); std::set<std::string> links;
 	if(!doc)
 	{
 		std::cout<<"failed to parse html"<<std::endl;
 		return links;
 	}
 	xmlXPathContextPtr context = xmlXPathNewContext(doc);
-	xmlXPathObjectPtr result = xmlXPathEvalExpression((const xmlChar *)"//a/@href", context);
+	const char *query = "//a[@href"
+	" and not(starts-with(normalize-space(@href), '#'))"
+	" and not(starts-with(normalize-space(@href), '?'))"
+	" and not(starts-with(normalize-space(@href), 'mailto:'))"
+	" and not(starts-with(normalize-space(@href), 'tel:'))"
+	" and not(starts-with(normalize-space(@href), 'javascript:'))"
+	" and not(contains(@href, 'add-to-cart'))"
+	"]/@href";
+	xmlXPathObjectPtr result = xmlXPathEvalExpression((const xmlChar *)query, context);
 
 	if (result && result->nodesetval)
 	{
@@ -67,10 +74,14 @@ std::set<std::string> crawler::extract_links(const std::string& base_url)
 }
 void crawler::crawl()
 {
+	std::streampos pos {0};
 	while(true)
 	{
+		data_base.clear();
+		data_base.seekg(pos);
 		std::string base_url{};
-		data_base>>base_url;
+		if(!(data_base>>base_url)) break;
+		pos = data_base.tellg();
 
 		this->set_request(base_url);
 		std::set<std::string> links;
@@ -80,6 +91,7 @@ void crawler::crawl()
 		{
 			data_base<<link<<"\n";
 		}
+		data_base.flush();
 
 	}
 }
