@@ -15,7 +15,7 @@ private:
 public:
 	crawler();
 	~crawler();
-	std::string get_request(std::string& url);
+	void set_request(std::string& url);
 	std::set<std::string>extract_links(const std::string& base_url);
 	void crawl();
 
