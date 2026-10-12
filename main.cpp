@@ -1,5 +1,6 @@
 #include "crawler.hpp"
 
+
 int main() 
 {
 	crawler spider{};
